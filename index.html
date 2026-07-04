@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RemessasUnilog — Painel de Remessas</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- TELA DE LOGIN -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <div class="login-visual">
+      <div class="login-visual-brand">
+        <span class="brand-mark">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+        </span>
+        RemessasUnilog
+      </div>
+      <div class="login-visual-mid">
+        <h2>Acompanhe suas remessas em um só lugar.</h2>
+        <p>Atendimento, despacho e recebimento de itens do INCOR, com controle de acesso por usuário.</p>
+      </div>
+      <div class="login-visual-illustration">
+        <span class="box-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="7" width="14" height="10" rx="1.5"/><path d="M15 10h4l4 3.2V17h-4"/><circle cx="6.5" cy="19" r="1.6"/><circle cx="17.5" cy="19" r="1.6"/></svg>
+        </span>
+        <span class="box-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8 12 11 15 16 9"/></svg>
+        </span>
+      </div>
+      <div class="login-visual-foot">Acesso restrito · uso interno</div>
+    </div>
+    <form id="loginForm" class="login-form-panel">
+      <h1>Bem-vindo de volta</h1>
+      <div class="login-sub">Entre com seu usuário e senha para continuar</div>
+      <label>Usuário</label>
+      <input id="loginUsername" type="text" autocomplete="username" required />
+      <label>Senha</label>
+      <input id="loginSenha" type="password" autocomplete="current-password" required />
+      <button type="submit" id="loginBtn">Entrar</button>
+      <div id="loginError" class="login-error" style="display:none;"></div>
+    </form>
+  </div>
+</div>
+
+<!-- APP PRINCIPAL (só aparece depois do login) -->
+<div id="appScreen" class="app-shell" style="display:none;">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-mark">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+      </span>
+      <div class="brand-text">
+        <div class="brand-title">RemessasUnilog</div>
+        <div class="brand-sub">Painel de Remessas</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section-label">Navegação</div>
+    <nav class="tabs" id="tabs"></nav>
+
+    <div class="sidebar-footer">
+      <button id="adminBtn" class="sidebar-btn primary" style="display:none;">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Administração
+      </button>
+      <div class="sidebar-user">
+        <span class="avatar" id="userAvatar"></span>
+        <div class="user-info">
+          <div class="user-name" id="userInfo"></div>
+          <div class="user-role" id="userRoleLabel"></div>
+        </div>
+      </div>
+      <button id="logoutBtn" class="sidebar-btn">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sair
+      </button>
+    </div>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-controls">
+        <div class="search-wrap">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input id="searchInput" type="text" placeholder="Buscar por nº requisição, código ou descrição..." />
+        </div>
+        <select id="subfilter" class="subfilter" style="display:none;"></select>
+        <span id="resultCount"></span>
+      </div>
+      <button id="refreshBtn">
+        <svg class="icon" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        Atualizar
+      </button>
+    </header>
+
+    <div class="content-scroll">
+
+      <div class="welcome-banner">
+        <div>
+          <div class="banner-eyebrow" id="bannerDate"></div>
+          <h1 id="bannerGreeting">Bem-vindo</h1>
+          <div class="banner-sub" id="lastUpdated">Carregando…</div>
+        </div>
+        <div class="banner-stats" id="bannerStats"></div>
+      </div>
+
+      <div class="summary" id="summary"></div>
+
+      <div class="table-wrap" id="mainTableWrap">
+        <table id="dataTable">
+          <thead>
+            <tr>
+              <th>Nº Requisição</th>
+              <th>Código</th>
+              <th>Descrição</th>
+              <th>Qtde Solicitada</th>
+              <th>Qtde Atendida</th>
+              <th>Status Despacho</th>
+              <th>Qtde Recebida</th>
+              <th>Cobertura Instituto (dias)</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+        <div id="stateMsg" class="state">Carregando dados da planilha…</div>
+      </div>
+
+      <div class="table-wrap" id="semRemessaTableWrap" style="display:none;">
+        <table id="semRemessaTable">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Descrição</th>
+              <th>Saldo 150</th>
+              <th>Cobertura Instituto (dias)</th>
+            </tr>
+          </thead>
+          <tbody id="semRemessaBody"></tbody>
+        </table>
+        <div id="semRemessaStateMsg" class="state" style="display:none;">Nenhum item encontrado com esse filtro.</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- PAINEL DE ADMINISTRAÇÃO -->
+<div id="adminOverlay" class="admin-overlay" style="display:none;">
+  <div class="admin-panel">
+    <div class="admin-panel-header">
+      <h2>Administração de usuários</h2>
+      <button id="adminCloseBtn" class="icon-btn">Fechar</button>
+    </div>
+
+    <div class="admin-section">
+      <h3>Criar novo usuário</h3>
+      <form id="createUserForm" class="admin-form">
+        <div class="admin-form-row">
+          <div>
+            <label>Usuário (login)</label>
+            <input id="newUsername" type="text" required />
+          </div>
+          <div>
+            <label>Nome completo</label>
+            <input id="newNome" type="text" required />
+          </div>
+          <div>
+            <label>Senha</label>
+            <input id="newSenha" type="password" required />
+          </div>
+          <div>
+            <label>Papel</label>
+            <select id="newRole">
+              <option value="user">Usuário</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label>Abas que este usuário pode ver</label>
+          <div id="newPermissoes" class="perm-checks"></div>
+        </div>
+        <button type="submit">Criar usuário</button>
+        <div id="createUserMsg" class="admin-msg"></div>
+      </form>
+    </div>
+
+    <div class="admin-section">
+      <h3>Usuários existentes</h3>
+      <div id="usersListWrap">Carregando…</div>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
