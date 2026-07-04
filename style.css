@@ -426,6 +426,19 @@ thead th {
   white-space: nowrap;
   z-index: 1;
 }
+thead th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+thead th.sortable:hover {
+  color: var(--text);
+}
+.sort-arrow {
+  display: inline-block;
+  font-size: 10px;
+  margin-left: 2px;
+  color: var(--accent);
+}
 tbody td {
   padding: 11px 14px;
   border-bottom: 1px solid var(--border);

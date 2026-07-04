@@ -44,6 +44,7 @@ let currentTab = null;
 let currentSub = '';
 let currentItems = [];
 let currentSemRemessa = [];
+let sortDir = 'asc'; // ordenação por Cobertura Instituto (dias): 'asc' ou 'desc'
 
 // ---------- Elementos ----------
 const loginScreen = document.getElementById('loginScreen');
@@ -76,6 +77,10 @@ const semRemessaTableWrap = document.getElementById('semRemessaTableWrap');
 const tableBody = document.getElementById('tableBody');
 const semRemessaBody = document.getElementById('semRemessaBody');
 const semRemessaStateMsg = document.getElementById('semRemessaStateMsg');
+const thCobertura = document.getElementById('thCobertura');
+const thCoberturaSemRemessa = document.getElementById('thCoberturaSemRemessa');
+const sortArrowMain = document.getElementById('sortArrowMain');
+const sortArrowSemRemessa = document.getElementById('sortArrowSemRemessa');
 
 const adminOverlay = document.getElementById('adminOverlay');
 const adminCloseBtn = document.getElementById('adminCloseBtn');
@@ -160,6 +165,7 @@ function showApp() {
   renderBanner();
   buildTabs();
   updateSubfilterOptions();
+  updateSortArrows();
   loadCounts();
   loadCurrentView();
 }
@@ -250,15 +256,28 @@ function escapeHtml(v) {
   if (v === null || v === undefined) return '';
   return v.toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
-function sortByCoberturaAsc(list) {
+function sortByCobertura(list, dir) {
+  const mult = dir === 'desc' ? -1 : 1;
   list.sort((a, b) => {
     const av = a.coberturaInstitutoDias, bv = b.coberturaInstitutoDias;
     if (av === null || av === undefined) return (bv === null || bv === undefined) ? 0 : 1;
     if (bv === null || bv === undefined) return -1;
-    return av - bv;
+    return (av - bv) * mult;
   });
   return list;
 }
+function updateSortArrows() {
+  const arrow = sortDir === 'desc' ? '▼' : '▲';
+  if (sortArrowMain) sortArrowMain.textContent = arrow;
+  if (sortArrowSemRemessa) sortArrowSemRemessa.textContent = arrow;
+}
+function toggleSort() {
+  sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  updateSortArrows();
+  render();
+}
+if (thCobertura) thCobertura.addEventListener('click', toggleSort);
+if (thCoberturaSemRemessa) thCoberturaSemRemessa.addEventListener('click', toggleSort);
 
 // ---------- Carregamento de dados ----------
 async function loadCurrentView() {
@@ -350,7 +369,7 @@ function render() {
 
   const q = searchInput.value.trim();
   const filtered = currentItems.filter(it => matchesSub(it) && matchesSearch(it, q));
-  sortByCoberturaAsc(filtered);
+  sortByCobertura(filtered, sortDir);
 
   resultCountEl.textContent = `${filtered.length} de ${currentItems.length} itens`;
 
@@ -387,7 +406,7 @@ function render() {
 function renderSemRemessa() {
   const q = searchInput.value.trim();
   const filtered = currentSemRemessa.filter(it => matchesSemRemessaSearch(it, q));
-  sortByCoberturaAsc(filtered);
+  sortByCobertura(filtered, sortDir);
 
   resultCountEl.textContent = `${filtered.length} de ${currentSemRemessa.length} itens`;
 
