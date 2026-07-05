@@ -144,6 +144,98 @@
         <div id="semRemessaStateMsg" class="state" style="display:none;">Nenhum item encontrado com esse filtro.</div>
       </div>
 
+      <div class="dashboard-grid" id="dashboardWrap" style="display:none;">
+
+        <div class="dash-header">
+          <div>
+            <h2>Indicadores</h2>
+            <p>Visão consolidada da cobertura de estoque e dos atrasos no fluxo de remessas do INCOR.</p>
+          </div>
+          <span class="live-badge"><span class="live-dot"></span>Dados em tempo real</span>
+        </div>
+
+        <div id="dashboardStateMsg" class="dash-alert" style="display:none;"></div>
+
+        <div class="dash-kpis" id="dashKpis">
+          <div class="dash-kpi">
+            <span class="dash-kpi-icon accent"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+            <div>
+              <div class="dash-kpi-value" id="kpiTotal">—</div>
+              <div class="dash-kpi-label">Itens rastreados</div>
+            </div>
+          </div>
+          <div class="dash-kpi">
+            <span class="dash-kpi-icon red"><svg class="icon" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+            <div>
+              <div class="dash-kpi-value" id="kpiCritico">—</div>
+              <div class="dash-kpi-label">Cobertura crítica (&lt; 10 dias)</div>
+            </div>
+          </div>
+          <div class="dash-kpi">
+            <span class="dash-kpi-icon amber"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></span>
+            <div>
+              <div class="dash-kpi-value" id="kpiParados">—</div>
+              <div class="dash-kpi-label">Parados há +7 dias</div>
+            </div>
+          </div>
+          <div class="dash-kpi">
+            <span class="dash-kpi-icon gray"><svg class="icon" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg></span>
+            <div>
+              <div class="dash-kpi-value" id="kpiSemRemessa">—</div>
+              <div class="dash-kpi-label">Com saldo, sem remessa</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-card dash-card--pie">
+          <div class="dash-card-head">
+            <span class="dash-card-icon accent"><svg class="icon" viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg></span>
+            <div>
+              <h3 class="dash-card-title">Cobertura dos itens</h3>
+              <p class="dash-card-sub">Dias de estoque restante, por item</p>
+            </div>
+          </div>
+          <div class="pie-wrap">
+            <svg viewBox="0 0 200 200" class="pie-svg" id="pieSvg">
+              <circle class="pie-bg" cx="100" cy="100" r="80"></circle>
+              <circle class="pie-seg" id="pieSegGreen" cx="100" cy="100" r="80"></circle>
+              <circle class="pie-seg" id="pieSegYellow" cx="100" cy="100" r="80"></circle>
+              <circle class="pie-seg" id="pieSegRed" cx="100" cy="100" r="80"></circle>
+              <circle class="pie-seg" id="pieSegGray" cx="100" cy="100" r="80"></circle>
+            </svg>
+            <div class="pie-center">
+              <div class="pie-total" id="pieTotal">0</div>
+              <div class="pie-total-label">itens</div>
+            </div>
+          </div>
+          <div class="pie-legend" id="pieLegend"></div>
+        </div>
+
+        <div class="dash-card dash-card--bars">
+          <div class="dash-card-head">
+            <span class="dash-card-icon amber"><svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span>
+            <div>
+              <h3 class="dash-card-title">Itens com atraso (+7 dias)</h3>
+              <p class="dash-card-sub">Parados em cada etapa do fluxo</p>
+            </div>
+          </div>
+          <div class="bar-chart" id="barChart">
+            <div class="bar-col">
+              <span class="bar-col-icon"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></span>
+              <div class="bar-value" id="barValAtendidos7">0</div>
+              <div class="bar-track"><div class="bar-fill bar-yellow" id="barFillAtendidos7"></div></div>
+              <div class="bar-label">Atendidos +7d<br>sem despacho</div>
+            </div>
+            <div class="bar-col">
+              <span class="bar-col-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M12 2 21 20H3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="16.5" x2="12" y2="16.5"/></svg></span>
+              <div class="bar-value" id="barValDespachados7">0</div>
+              <div class="bar-track"><div class="bar-fill bar-red" id="barFillDespachados7"></div></div>
+              <div class="bar-label">Despachados +7d<br>sem receber</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 

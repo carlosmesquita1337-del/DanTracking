@@ -3,8 +3,9 @@
 // token/senha em query string.
 const API_URL = 'https://script.google.com/macros/s/AKfycbzN0ONjn3ahen3PoFRA8tUGbBHtetpT1ciobBmQd1ZVg9qhV2r1RvesNI1E0GCXLnBJ/exec';
 
-const VIEW_KEYS = ['todos', 'atendidos', 'despachados', 'recebidos', 'atendidos7', 'despachados7', 'semremessa'];
+const VIEW_KEYS = ['dashboard', 'todos', 'atendidos', 'despachados', 'recebidos', 'atendidos7', 'despachados7', 'semremessa'];
 const VIEW_LABELS = {
+  dashboard: 'Indicadores',
   todos: 'Todos',
   atendidos: 'Atendidos',
   despachados: 'Despachados',
@@ -17,6 +18,7 @@ const SESSION_KEY = 'ru_session_v1';
 
 // Ícones (inline SVG, sem dependência externa) usados na navegação lateral e nos cards de estatística.
 const ICONS = {
+  dashboard: '<svg class="icon" viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>',
   todos: '<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
   atendidos: '<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="8 12 11 15 16 9"/></svg>',
   despachados: '<svg class="icon" viewBox="0 0 24 24"><rect x="1" y="7" width="13" height="10" rx="1.5"/><path d="M14 10h4l4 3.2V17h-4"/><circle cx="6" cy="19" r="1.6"/><circle cx="17" cy="19" r="1.6"/></svg>',
@@ -68,6 +70,7 @@ const bannerStatsEl = document.getElementById('bannerStats');
 const tabsEl = document.getElementById('tabs');
 const stateMsg = document.getElementById('stateMsg');
 const searchInput = document.getElementById('searchInput');
+const searchWrapEl = document.querySelector('.search-wrap');
 const subfilterEl = document.getElementById('subfilter');
 const resultCountEl = document.getElementById('resultCount');
 const lastUpdatedEl = document.getElementById('lastUpdated');
@@ -81,6 +84,25 @@ const thCobertura = document.getElementById('thCobertura');
 const thCoberturaSemRemessa = document.getElementById('thCoberturaSemRemessa');
 const sortArrowMain = document.getElementById('sortArrowMain');
 const sortArrowSemRemessa = document.getElementById('sortArrowSemRemessa');
+
+// Elementos da aba "Indicadores" (dashboard com gráfico de pizza + colunas)
+const dashboardWrap = document.getElementById('dashboardWrap');
+const dashboardStateMsg = document.getElementById('dashboardStateMsg');
+const pieSvg = document.getElementById('pieSvg');
+const pieSegGreen = document.getElementById('pieSegGreen');
+const pieSegYellow = document.getElementById('pieSegYellow');
+const pieSegRed = document.getElementById('pieSegRed');
+const pieSegGray = document.getElementById('pieSegGray');
+const pieTotalEl = document.getElementById('pieTotal');
+const pieLegendEl = document.getElementById('pieLegend');
+const barValAtendidos7El = document.getElementById('barValAtendidos7');
+const barValDespachados7El = document.getElementById('barValDespachados7');
+const barFillAtendidos7El = document.getElementById('barFillAtendidos7');
+const barFillDespachados7El = document.getElementById('barFillDespachados7');
+const kpiTotalEl = document.getElementById('kpiTotal');
+const kpiCriticoEl = document.getElementById('kpiCritico');
+const kpiParadosEl = document.getElementById('kpiParados');
+const kpiSemRemessaEl = document.getElementById('kpiSemRemessa');
 
 const adminOverlay = document.getElementById('adminOverlay');
 const adminCloseBtn = document.getElementById('adminCloseBtn');
@@ -165,6 +187,7 @@ function showApp() {
   renderBanner();
   buildTabs();
   updateSubfilterOptions();
+  updateTopbarForTab();
   updateSortArrows();
   loadCounts();
   loadCurrentView();
@@ -211,6 +234,7 @@ function buildTabs() {
       currentTab = v;
       currentSub = '';
       updateSubfilterOptions();
+      updateTopbarForTab();
       loadCurrentView();
     });
     tabsEl.appendChild(div);
@@ -229,6 +253,17 @@ function updateSubfilterOptions() {
   } else {
     subfilterEl.style.display = 'none';
   }
+}
+
+// A aba "Indicadores" não usa busca por texto — some com a barra de busca nela.
+// Os cards de resumo (summaryEl) também somem nessa aba: os mesmos números já
+// aparecem nos KPIs e nos gráficos da própria aba, então mostrar os dois é
+// redundante e só rouba espaço da tela.
+function updateTopbarForTab() {
+  const isDashboard = currentTab === 'dashboard';
+  if (searchWrapEl) searchWrapEl.style.display = isDashboard ? 'none' : '';
+  resultCountEl.style.display = isDashboard ? 'none' : '';
+  summaryEl.style.display = isDashboard ? 'none' : '';
 }
 
 // ---------- Formatação ----------
@@ -282,6 +317,10 @@ if (thCoberturaSemRemessa) thCoberturaSemRemessa.addEventListener('click', toggl
 // ---------- Carregamento de dados ----------
 async function loadCurrentView() {
   if (!currentTab) return;
+  if (currentTab === 'dashboard') {
+    await loadDashboardData();
+    return;
+  }
   stateMsg.style.display = '';
   stateMsg.className = 'state';
   stateMsg.textContent = 'Carregando…';
@@ -308,6 +347,125 @@ async function loadCurrentView() {
     currentItems = data.items || [];
   }
   render();
+}
+
+// ---------- Aba "Indicadores" (dashboard com gráfico de pizza + colunas) ----------
+async function loadDashboardData() {
+  mainTableWrap.style.display = 'none';
+  semRemessaTableWrap.style.display = 'none';
+  dashboardWrap.style.display = '';
+  stateMsg.style.display = 'none';
+  semRemessaStateMsg.style.display = 'none';
+  dashboardStateMsg.style.display = 'none';
+  dashboardStateMsg.textContent = '';
+  refreshBtn.disabled = true;
+  refreshBtn.textContent = 'Atualizando…';
+
+  const [dataResp, countsResp] = await Promise.all([
+    api('data', { view: 'todos' }),
+    api('counts', {}),
+  ]);
+
+  refreshBtn.disabled = false;
+  refreshBtn.textContent = 'Atualizar';
+
+  if (dataResp.generatedAt) {
+    lastUpdatedEl.textContent = 'Dados da planilha gerados em: ' + new Date(dataResp.generatedAt).toLocaleString('pt-BR');
+  }
+
+  if (dataResp.error) {
+    pieTotalEl.textContent = '—';
+    pieLegendEl.innerHTML = '';
+    kpiTotalEl.textContent = '—';
+    kpiCriticoEl.textContent = '—';
+    dashboardStateMsg.style.display = '';
+    dashboardStateMsg.className = 'dash-alert';
+    dashboardStateMsg.textContent = 'Não foi possível carregar os indicadores (' + dataResp.error + ').';
+  } else {
+    renderCoveragePie(dataResp.items || []);
+  }
+
+  renderDelayBars((countsResp && countsResp.counts) || {});
+}
+
+function renderCoveragePie(items) {
+  let green = 0, yellow = 0, red = 0, gray = 0;
+  items.forEach((it) => {
+    const c = it.coberturaInstitutoDias;
+    if (c === null || c === undefined) gray++;
+    else if (c > 30) green++;
+    else if (c >= 10) yellow++;
+    else red++;
+  });
+  const total = green + yellow + red + gray;
+  pieTotalEl.textContent = total;
+  kpiTotalEl.textContent = total;
+  const criticoPct = total > 0 ? Math.round((red / total) * 100) : 0;
+  kpiCriticoEl.textContent = total > 0 ? `${red} (${criticoPct}%)` : '0';
+
+  const R = 80;
+  const C = 2 * Math.PI * R;
+  // Deslocamento fixo de 1/4 de volta para o primeiro segmento começar às 12h.
+  const START_OFFSET = C / 4;
+
+  const segs = [
+    { el: pieSegGreen, val: green, colorVar: '--green', label: 'Cobertura > 30 dias' },
+    { el: pieSegYellow, val: yellow, colorVar: '--amber', label: 'Cobertura de 10 a 30 dias' },
+    { el: pieSegRed, val: red, colorVar: '--red', label: 'Cobertura < 10 dias' },
+    { el: pieSegGray, val: gray, colorVar: '--gray', label: 'Sem informação de cobertura' },
+  ];
+
+  let cumulative = 0;
+  segs.forEach((s) => {
+    const frac = total > 0 ? s.val / total : 0;
+    const len = frac * C;
+    const color = getComputedStyle(document.documentElement).getPropertyValue(s.colorVar).trim();
+    s.el.style.stroke = color || '';
+    s.el.style.strokeDasharray = `${len} ${C - len}`;
+    s.el.style.strokeDashoffset = String(START_OFFSET - cumulative);
+    cumulative += len;
+  });
+
+  // Reinicia a animação de "girar e aparecer" toda vez que a aba é aberta/atualizada.
+  pieSvg.classList.remove('spin-in');
+  void pieSvg.offsetWidth; // força reflow para permitir reexecutar a animação
+  pieSvg.classList.add('spin-in');
+
+  pieLegendEl.innerHTML = segs.map((s) => {
+    const pct = total > 0 ? Math.round((s.val / total) * 100) : 0;
+    const color = getComputedStyle(document.documentElement).getPropertyValue(s.colorVar).trim();
+    return `
+      <div class="legend-row">
+        <span class="legend-dot" style="background:${color}"></span>
+        <span class="legend-label">${escapeHtml(s.label)}</span>
+        <span class="legend-value">${s.val} (${pct}%)</span>
+      </div>`;
+  }).join('');
+}
+
+function renderDelayBars(counts) {
+  const a7 = counts.atendidos7 || 0;
+  const d7 = counts.despachados7 || 0;
+  barValAtendidos7El.textContent = a7;
+  barValDespachados7El.textContent = d7;
+  kpiParadosEl.textContent = a7 + d7;
+  kpiSemRemessaEl.textContent = counts.semremessa !== undefined ? counts.semremessa : '—';
+  const maxVal = Math.max(a7, d7, 1);
+
+  // Zera antes de animar, para o crescimento acontecer sempre que a aba é aberta.
+  [barFillAtendidos7El, barFillDespachados7El].forEach((el) => {
+    el.style.transition = 'none';
+    el.style.height = '0%';
+  });
+  // Duplo requestAnimationFrame garante que o navegador aplique o "0%" antes de animar.
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      barFillAtendidos7El.style.transition = 'height 1s cubic-bezier(.22,1,.36,1)';
+      barFillDespachados7El.style.transition = 'height 1s cubic-bezier(.22,1,.36,1)';
+      barFillAtendidos7El.style.height = (a7 / maxVal * 100) + '%';
+      barFillDespachados7El.style.height = (d7 / maxVal * 100) + '%';
+    });
+  });
 }
 
 async function loadCounts() {
@@ -358,6 +516,8 @@ function matchesSub(item) {
 }
 
 function render() {
+  if (currentTab === 'dashboard') return; // a aba Indicadores é renderizada por loadDashboardData()
+  dashboardWrap.style.display = 'none'; // some com o dashboard ao trocar para qualquer outra aba
   if (currentTab === 'semremessa') {
     mainTableWrap.style.display = 'none';
     semRemessaTableWrap.style.display = '';
