@@ -1,6 +1,7 @@
-# RemessasUnilog — Painel de Remessas
+# DanTracking — Painel de Remessas
 
-Painel web que lê a planilha Google "RemessasUnilog" (abas `Base_Remessas`,
+Painel web (nome do sistema: **DanTracking**) que lê a planilha Google
+"RemessasUnilog" (abas `Base_Remessas`,
 `Cobertura_Instituto` e `Usuarios_Sistema`) e mostra os itens filtrados por:
 Todos, Atendidos (parcial/total), Despachados, Recebidos (parcial/total),
 Atendidos +7d sem despacho, Despachados +7d sem receber e Saldo sem remessa
